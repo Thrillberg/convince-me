@@ -1,0 +1,14 @@
+{
+    "env": {
+        "browser": "true"
+    },
+    "globals": {
+        "document": "false"
+    },
+    "extends": "airbnb",
+    "plugins": [
+        "react",
+        "jsx-a11y",
+        "import"
+    ]
+}

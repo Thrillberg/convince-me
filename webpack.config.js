@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: [
-    './src/main.js',
+    './src/main.jsx',
   ],
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -20,6 +20,6 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.js', '.jsx']
-  }
+    extensions: ['.js', '.jsx'],
+  },
 };
