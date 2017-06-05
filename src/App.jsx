@@ -1,5 +1,36 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
+import Chat from './Chat';
+import Matchmaker from './Matchmaker';
 
-const App = () => <div>Yowza</div>;
+export default class App extends PureComponent {
+  constructor() {
+    super();
 
-export default App;
+    this.state = {
+      inChat: false,
+      currentUser: {
+        id: '123',
+      },
+    };
+  }
+
+  goToChat = () => {
+    this.setState({
+      inChat: true,
+    });
+  }
+
+  render() {
+    if (!this.state.inChat) {
+      return (
+        <Matchmaker
+          goToChat={this.goToChat}
+        />
+      );
+    }
+
+    return (
+      <Chat currentUser={this.state.currentUser} />
+    );
+  }
+}
