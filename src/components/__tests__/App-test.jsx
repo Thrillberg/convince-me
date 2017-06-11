@@ -12,7 +12,7 @@ describe('App', () => {
   describe('before chatting', () => {
     beforeEach(() => {
       component.setState({
-        inChat: false
+        inChat: false,
       });
     });
 
