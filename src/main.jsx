@@ -1,8 +1,10 @@
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import Firebase from 'firebase';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
 import App from './components/App';
+import Chat from './components/Chat';
 
 document.addEventListener('DOMContentLoaded', () => {
   const config = {
@@ -16,7 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
   Firebase.initializeApp(config);
 
   ReactDOM.render(
-    React.createElement(App),
+    <Router>
+      <div>
+        <Route exact path="/" component={App} />
+        <Route path="/chats/:id" component={Chat} />
+      </div>
+    </Router>,
     document.getElementById('app'),
   );
 });
