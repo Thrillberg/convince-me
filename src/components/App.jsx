@@ -1,3 +1,4 @@
+import Firebase from 'firebase';
 import React, { PureComponent } from 'react';
 import Chat from './Chat';
 import Matchmaker from './Matchmaker';
@@ -14,8 +15,17 @@ export default class App extends PureComponent {
   }
 
   componentDidMount() {
-    // eslint-disable-next-line no-undef
-    firebase.auth().onAuthStateChanged((user) => {
+    const config = {
+      apiKey: 'AIzaSyAmECAdkdFnJJiRc2Ewc_DhSW-ekDyfhkI',
+      authDomain: 'convince-me-9bcc5.firebaseapp.com',
+      databaseURL: 'https://convince-me-9bcc5.firebaseio.com',
+      projectId: 'convince-me-9bcc5',
+      storageBucket: 'convince-me-9bcc5.appspot.com',
+      messagingSenderId: '369300905872',
+    };
+    Firebase.initializeApp(config);
+
+    Firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         this.setState({
           uid: user.uid,
@@ -26,15 +36,12 @@ export default class App extends PureComponent {
 
   goToChat = () => {
     if (!this.state.uid) {
-      /* eslint-disable */
-      firebase.auth().signInAnonymously().catch((error) => {
-        console.log(error);
+      Firebase.auth().signInAnonymously().catch((error) => {
+        console.log(error); // eslint-disable-line no-console
       });
-      /* eslint-enable */
     }
 
-    // eslint-disable-next-line no-undef
-    const database = firebase.database();
+    const database = Firebase.database();
     database.ref(`chats/${this.state.chatId}`).set({
       uid: this.state.uid,
     });
@@ -45,8 +52,7 @@ export default class App extends PureComponent {
   }
 
   cancel = () => {
-    // eslint-disable-next-line no-undef
-    const database = firebase.database();
+    const database = Firebase.database();
     database.ref(`chats/${this.state.chatId}`).set({
       uid: null,
     });
