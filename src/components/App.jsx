@@ -1,14 +1,28 @@
 import Firebase from 'firebase';
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import Matchmaker from './Matchmaker';
 
 export default class App extends PureComponent {
   constructor() {
     super();
 
     this.state = {
-      chatId: '123',
+      user: null,
     };
+  }
+
+  componentDidMount() {
+    if (!Firebase.auth().currentUser) {
+      Firebase.auth().signInAnonymously().catch((error) => {
+        console.log(error); // eslint-disable-line no-console
+      });
+    }
+
+    Firebase.auth().onAuthStateChanged((user) => {
+      this.setState({
+        user,
+      });
+    });
   }
 
   render() {
@@ -17,7 +31,16 @@ export default class App extends PureComponent {
     }
 
     return (
-      <Matchmaker chatId={this.state.chatId} />
+      <div>
+        {this.props.children}
+      </div>
     );
   }
 }
+
+App.propTypes = {
+  children: PropTypes.arrayOf(
+    PropTypes.object,
+    PropTypes.object,
+  ).isRequired,
+};

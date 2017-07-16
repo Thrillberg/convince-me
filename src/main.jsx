@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, BrowserRouter, withRouter } from 'react-router-dom';
 import Firebase from 'firebase';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
 import App from './components/App';
+import Matchmaker from './components/Matchmaker';
 import Chat from './components/Chat';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,12 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   Firebase.initializeApp(config);
 
+  const UnblockingRoute = withRouter(App);
+
   ReactDOM.render(
-    <Router>
-      <div>
-        <Route exact path="/" component={App} />
+    <Router history={BrowserRouter}>
+      <UnblockingRoute location={location}>
+        <Route exact path="/" component={Matchmaker} />
         <Route path="/chats/:id" component={Chat} />
-      </div>
+      </UnblockingRoute>
     </Router>,
     document.getElementById('app'),
   );

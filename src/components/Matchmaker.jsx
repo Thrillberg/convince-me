@@ -1,23 +1,19 @@
 import { Link } from 'react-router-dom';
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 
 export default class Matchmaker extends PureComponent {
   render() {
-    const chatPath = `/chats/${this.props.chatId}`;
+    const chatId = Math.floor(Math.random() * 100000000);
+
+    const chatPath = `/chats/${chatId}`;
 
     return (
-      <Link to={chatPath}>
-        Chat
-      </Link>
+      <div>
+        <Link to={chatPath}>
+          Chat Now
+        </Link>
+      </div>
     );
   }
 }
 
-Matchmaker.propTypes = {
-  chatId: PropTypes.string,
-};
-
-Matchmaker.defaultProps = {
-  chatId: null,
-};
