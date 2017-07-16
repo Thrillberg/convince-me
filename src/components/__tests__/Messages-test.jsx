@@ -8,13 +8,13 @@ describe('Messages', () => {
   beforeEach(() => {
     firstMessage = {
       text: 'My name is Mudd.',
-      timestamp: '1122334455',
+      timestamp: 1500222901063,
       sender: '123',
     };
 
     secondMessage = {
       text: 'Nice to meet you, Mudd.',
-      timestamp: '5544332211',
+      timestamp: 1500222901063,
       sender: '321',
     };
 

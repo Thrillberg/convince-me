@@ -1,19 +1,29 @@
 import React, { PureComponent } from 'react';
+import Moment from 'moment';
 import PropTypes from 'prop-types';
 
 export default class Messages extends PureComponent {
   renderMessages() {
-    return Object.keys(this.props.messages).map((key) => {
-      const message = (
-        <div key={key} className="message">
-          <div className="text">
-            {this.props.messages[key].text}
-          </div>
-        </div>
-      );
+    const messages = this.props.messages;
 
-      return message;
-    });
+    if (messages) {
+      return Object.keys(messages).map((key) => {
+        const message = (
+          <div key={key} className="message">
+            <span className="timestamp">
+              {Moment(messages[key].timestamp).format('dddd, M/D h:mm A')}
+            </span>
+            <span className="text">
+              {messages[key].text}
+            </span>
+          </div>
+        );
+
+        return message;
+      });
+    }
+
+    return null;
   }
 
   render() {
@@ -32,5 +42,9 @@ Messages.propTypes = {
       sender: PropTypes.string,
       timestamp: PropTypes.string,
     }),
-  }).isRequired,
+  }),
+};
+
+Messages.defaultProps = {
+  messages: {},
 };
