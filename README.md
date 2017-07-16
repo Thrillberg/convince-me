@@ -5,5 +5,13 @@ npm install
 ```
 
 ```
-npm run compile
+npm run test
+```
+
+```
+npm run eslint
+```
+
+```
+npm run start
 ```
