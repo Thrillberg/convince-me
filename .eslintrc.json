@@ -14,5 +14,11 @@
         "react",
         "jsx-a11y",
         "import"
-    ]
+    ],
+    "rules": {
+        "no-undef": 0,
+        "react/react-in-jsx-scope": 0,
+        "react/prefer-stateless-function": 0,
+        "react/no-children-prop": 0
+    }
 }

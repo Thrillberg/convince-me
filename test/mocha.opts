@@ -1,0 +1,6 @@
+--require ./test/setupFakeDOM
+--require ./test/setup
+--reporter progress
+--recursive
+
+**/components/__tests__/*-test.js*

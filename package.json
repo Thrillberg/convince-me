@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --progress --colors",
-    "test": "mocha test/setup.js src/components/__tests__/*-test.jsx",
+    "test": "mocha",
     "eslint": "eslint --ext jsx ."
   },
   "keywords": [],
@@ -19,6 +19,7 @@
     "prop-types": "^15.5.10",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
+    "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1"
   },
   "devDependencies": {
