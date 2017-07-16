@@ -10,7 +10,7 @@ export default class Chat extends PureComponent {
 
     this.state = {
       chatInput: '',
-      messages: [],
+      messages: {},
     };
   }
 
@@ -33,7 +33,7 @@ export default class Chat extends PureComponent {
     this.setState({ chatInput: event.target.value });
   }
 
-  handleTextSubmit = () => {
+  handleTextSubmit = (event) => {
     const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
 
     messagesRef.push({
@@ -41,6 +41,10 @@ export default class Chat extends PureComponent {
       text: this.state.chatInput,
       sender: Firebase.auth().currentUser.uid,
     });
+
+    this.setState({ chatInput: '' });
+
+    event.preventDefault();
   }
 
   renderMessages() {

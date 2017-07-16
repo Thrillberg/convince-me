@@ -41,7 +41,7 @@ describe('Chat', () => {
     it('initializes with the correct state', () => {
       const expectedState = {
         chatInput: '',
-        messages: [],
+        messages: {},
       };
       expect(component.state()).to.deep.eq(expectedState);
     });
@@ -81,13 +81,17 @@ describe('Chat', () => {
           sender: fakeAuthenticated().currentUser.uid,
         };
         const databaseCall = fakeDatabase().ref().push;
+        const fakeEvent = {
+          preventDefault: sinon.spy(),
+        };
 
         component.setState({
           chatInput: commonSense,
         });
 
-        component.instance().handleTextSubmit();
+        component.instance().handleTextSubmit(fakeEvent);
 
+        expect(fakeEvent.preventDefault.called).to.eq(true);
         expect(databaseCall.calledWith(expectedArgs)).to.eq(true);
       });
     });
