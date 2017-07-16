@@ -10,11 +10,16 @@ export default class Messages extends PureComponent {
       return Object.keys(messages).map((key) => {
         const message = (
           <div key={key} className="message">
+            <span>
+              <span className="sender">
+                {messages[key].sender}:
+              </span>
+              <span className="text">
+                {messages[key].text}
+              </span>
+            </span>
             <span className="timestamp">
               {Moment(messages[key].timestamp).format('dddd, M/D h:mm A')}
-            </span>
-            <span className="text">
-              {messages[key].text}
             </span>
           </div>
         );

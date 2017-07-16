@@ -1,5 +1,6 @@
 import Firebase from 'firebase';
 import PropTypes from 'prop-types';
+import { Jumbotron, Grid, Row, Col } from 'react-bootstrap';
 import React, { PureComponent } from 'react';
 
 export default class App extends PureComponent {
@@ -32,7 +33,18 @@ export default class App extends PureComponent {
 
     return (
       <div>
-        {this.props.children}
+        <Jumbotron>
+          <h1 className="text-center">
+            Convince Me
+          </h1>
+        </Jumbotron>
+        <Grid>
+          <Row>
+            <Col md={12}>
+              {this.props.children}
+            </Col>
+          </Row>
+        </Grid>
       </div>
     );
   }

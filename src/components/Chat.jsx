@@ -1,5 +1,6 @@
 import Firebase from 'firebase';
 import { Link } from 'react-router-dom';
+import { Row, Col, Button } from 'react-bootstrap';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Messages from './Messages';
@@ -57,23 +58,28 @@ export default class Chat extends PureComponent {
     const rootPath = '/';
 
     return (
-      <div className="chat">
-        Your id is {Firebase.auth().currentUser.uid}.
-        <Link to={rootPath}>
-          Cancel
-        </Link>
-        <div>
-          {this.renderMessages()}
-        </div>
-        <form onSubmit={this.handleTextSubmit}>
-          <input
-            type="text"
-            value={this.state.chatInput}
-            onChange={this.handleTextInput}
-            placeholder="Type your message here"
-          />
-        </form>
-      </div>
+      <Row className="chat">
+        <Col md={9}>
+          <div>
+            {this.renderMessages()}
+          </div>
+          <form onSubmit={this.handleTextSubmit}>
+            <input
+              type="text"
+              value={this.state.chatInput}
+              onChange={this.handleTextInput}
+              placeholder="Type your message here"
+            />
+          </form>
+        </Col>
+        <Col md={3}>
+          <Link to={rootPath}>
+            <Button bsStyle="danger" block>
+              Cancel Chat
+            </Button>
+          </Link>
+        </Col>
+      </Row>
     );
   }
 }
