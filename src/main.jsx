@@ -3,6 +3,7 @@ import Firebase from 'firebase';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import Stylesheet from '../convince-me.css';
 import App from './components/App';
 import Matchmaker from './components/Matchmaker';
 import Chat from './components/Chat';
