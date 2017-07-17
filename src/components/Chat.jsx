@@ -16,8 +16,10 @@ export default class Chat extends PureComponent {
   }
 
   componentDidMount() {
+    const uid = Firebase.auth().currentUser.uid;
     const usersRef = Firebase.database().ref(`chats/${this.props.match.params.id}/users`);
     const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
+    const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
 
     usersRef.set({
       uid: Firebase.auth().currentUser.uid,
@@ -28,6 +30,10 @@ export default class Chat extends PureComponent {
         messages: snapshot.val(),
       });
     }));
+
+    chatsRef.push(
+      this.props.match.params.id,
+    );
   }
 
   handleTextInput = (event) => {

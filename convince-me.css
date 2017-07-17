@@ -55,3 +55,7 @@ input {
   font-size: 0.7em;
   align-self: center;
 }
+
+.chat-list {
+  margin-top: 30px;
+}
