@@ -31,9 +31,7 @@ export default class Chat extends PureComponent {
       });
     }));
 
-    chatsRef.push(
-      this.props.match.params.id,
-    );
+    chatsRef.push(this.props.match.params.id);
   }
 
   handleTextInput = (event) => {

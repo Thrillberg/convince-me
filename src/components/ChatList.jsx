@@ -18,7 +18,9 @@ export default class ChatList extends PureComponent {
     const uid = Firebase.auth().currentUser.uid;
     Firebase.database().ref(`/users/${uid}`).once('value')
       .then((snapshot) => {
-        this.setState(snapshot.val());
+        if (snapshot.val()) {
+          this.setState(snapshot.val());
+        }
       })
       .catch((error) => {
         console.log(error); // eslint-disable-line no-console
