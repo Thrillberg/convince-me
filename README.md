@@ -1,4 +1,6 @@
-#Convince Me
+[![Build Status](https://travis-ci.org/Thrillberg/convince-me.svg?branch=master)](https://travis-ci.org/Thrillberg/convince-me)
+
+# Convince Me
 
 ```
 npm install
