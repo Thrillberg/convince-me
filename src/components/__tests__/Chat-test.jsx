@@ -1,3 +1,4 @@
+import { Button } from 'react-bootstrap';
 import Chat from '../Chat';
 
 describe('Chat', () => {
@@ -42,6 +43,7 @@ describe('Chat', () => {
       const expectedState = {
         chatInput: '',
         messages: {},
+        status: '',
       };
       expect(component.state()).to.deep.eq(expectedState);
     });
@@ -50,6 +52,32 @@ describe('Chat', () => {
   describe('layout', () => {
     it('renders a chat', () => {
       expect(component.find('.chat').length).to.eq(1);
+    });
+
+    it('renders a Home button and an End Chat button', () => {
+      expect(component.find(Button).length).to.eq(2);
+    });
+
+    describe('chat status', () => {
+      describe('created', () => {
+        it('shows an input', () => {
+          expect(component.find('input').length).to.eq(1);
+        });
+      });
+
+      describe('ended', () => {
+        beforeEach(() => {
+          component.setState({ status: 'ended' });
+        });
+
+        it('does not show an input', () => {
+          expect(component.find('input').length).to.eq(0);
+        });
+
+        it('does not show an End Chat button', () => {
+          expect(component.find(Button).length).to.eq(1);
+        });
+      });
     });
   });
 
@@ -140,6 +168,13 @@ describe('Chat', () => {
           component.instance().pushChatIdsToFirebase(snapshotStub, chatsRefStub);
           expect(pushStub.calledWith(id)).to.eq(false);
         });
+      });
+    });
+
+    describe('End Chat button', () => {
+      it('calls #endChat upon click', () => {
+        component.find(Button).last().simulate('click');
+        expect(fakeDatabase.called).to.eq(true);
       });
     });
   });

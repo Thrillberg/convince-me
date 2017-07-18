@@ -12,6 +12,7 @@ export default class Chat extends PureComponent {
     this.state = {
       chatInput: '',
       messages: {},
+      status: '',
     };
   }
 
@@ -20,6 +21,7 @@ export default class Chat extends PureComponent {
     const usersRef = Firebase.database().ref(`chats/${this.props.match.params.id}/users`);
     const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
     const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
+    const statusRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
 
     usersRef.set({
       uid: Firebase.auth().currentUser.uid,
@@ -35,6 +37,12 @@ export default class Chat extends PureComponent {
       .then((snapshot) => {
         this.pushChatIdsToFirebase(snapshot, chatsRef);
       });
+
+    statusRef.on('value', ((snapshot) => {
+      this.setState({
+        status: snapshot.val(),
+      });
+    }));
   }
 
   pushChatIdsToFirebase = (snapshot, chatsRef) => {
@@ -72,6 +80,71 @@ export default class Chat extends PureComponent {
     event.preventDefault();
   }
 
+  endChat = () => {
+    const chatRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
+    chatRef.set('ended');
+    return null;
+  }
+
+  renderButtons = () => {
+    const rootPath = '/';
+
+    if (this.state.status === 'ended') {
+      return (
+        <Col md={3}>
+          <Link to={rootPath}>
+            <Button
+              bsStyle="primary"
+              block
+            >
+              Back Home
+            </Button>
+          </Link>
+        </Col>
+      );
+    }
+    return (
+      <Col md={3}>
+        <Link to={rootPath}>
+          <Button
+            bsStyle="primary"
+            block
+          >
+            Back Home
+          </Button>
+        </Link>
+        <Link to={rootPath}>
+          <Button
+            bsStyle="danger"
+            block
+            onClick={this.endChat}
+          >
+            End Chat
+          </Button>
+        </Link>
+      </Col>
+    );
+  }
+
+  renderInput() {
+    if (this.state.status !== 'ended') {
+      return (
+        <form onSubmit={this.handleTextSubmit}>
+          <input
+            type="text"
+            value={this.state.chatInput}
+            onChange={this.handleTextInput}
+            placeholder="Type your message here"
+          />
+        </form>
+      );
+    }
+
+    return (
+      <div>This chat has ended.</div>
+    );
+  }
+
   renderMessages() {
     return (
       <Messages messages={this.state.messages} />
@@ -79,30 +152,15 @@ export default class Chat extends PureComponent {
   }
 
   render() {
-    const rootPath = '/';
-
     return (
       <Row className="chat">
         <Col md={9}>
           <div>
             {this.renderMessages()}
           </div>
-          <form onSubmit={this.handleTextSubmit}>
-            <input
-              type="text"
-              value={this.state.chatInput}
-              onChange={this.handleTextInput}
-              placeholder="Type your message here"
-            />
-          </form>
+          {this.renderInput()}
         </Col>
-        <Col md={3}>
-          <Link to={rootPath}>
-            <Button bsStyle="danger" block>
-              Cancel Chat
-            </Button>
-          </Link>
-        </Col>
+        {this.renderButtons()}
       </Row>
     );
   }
