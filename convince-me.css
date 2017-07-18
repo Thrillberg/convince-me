@@ -55,3 +55,15 @@ input {
   font-size: 0.7em;
   align-self: center;
 }
+
+.chat-list {
+  margin-top: 30px;
+}
+
+.column-header {
+  font-weight: 600;
+}
+
+.chat a {
+  color: blue;
+}
