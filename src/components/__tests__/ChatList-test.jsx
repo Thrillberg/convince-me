@@ -15,6 +15,13 @@ describe('ChatList', () => {
     fakeDatabase = sinon.stub(Firebase, 'database').returns({
       ref: sinon.stub().returns({
         once: sinon.stub(Firebase, 'once'),
+        orderByKey: sinon.stub(Firebase, 'orderByKey').returns({
+          equalTo: sinon.stub(Firebase, 'equalTo').returns({
+            once: sinon.stub(Firebase, 'once').returns({
+              then: sinon.spy(),
+            }),
+          }),
+        }),
       }),
     });
 
@@ -35,8 +42,8 @@ describe('ChatList', () => {
       expect(component.state()).to.deep.eq(expectedState);
     });
 
-    describe('#getChats', () => {
-      it('gets chats from Firebase', () => {
+    describe('#setChatsToState', () => {
+      it('sets chats from Firebase to state', () => {
         const expectedState = {
           chats: {
             firstChat: 'a chat here',
@@ -50,10 +57,9 @@ describe('ChatList', () => {
         databaseCall.resolves(snapshotStub);
         expect(component.state()).to.deep.eq({ chats: {} });
 
-        component.instance().getChats();
+        component.instance().setChatsToState();
 
         expect(databaseCall.calledWith('value')).to.eq(true);
-        // expect(component.state()).to.deep.eq(expectedState);
       });
     });
   });

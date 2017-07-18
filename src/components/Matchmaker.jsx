@@ -13,7 +13,7 @@ export default class Matchmaker extends PureComponent {
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.setState({
       chatId: Math.floor(Math.random() * 100000000),
     });
@@ -23,7 +23,7 @@ export default class Matchmaker extends PureComponent {
     const chatRef = Firebase.database().ref(`chats/${this.state.chatId}`);
 
     chatRef.set({
-      started_at: Firebase.database.ServerValue.TIMESTAMP
+      started_at: Firebase.database.ServerValue.TIMESTAMP,
     });
   }
 
@@ -39,7 +39,8 @@ export default class Matchmaker extends PureComponent {
                 bsStyle="primary"
                 bsSize="large"
                 block
-                onClick={this.saveChat}>
+                onClick={this.saveChat}
+              >
                 Chat Now
               </Button>
             </Link>
