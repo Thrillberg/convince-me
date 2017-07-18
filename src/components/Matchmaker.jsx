@@ -24,6 +24,7 @@ export default class Matchmaker extends PureComponent {
 
     chatRef.set({
       started_at: Firebase.database.ServerValue.TIMESTAMP,
+      status: 'created',
     });
   }
 

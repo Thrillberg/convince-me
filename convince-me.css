@@ -71,3 +71,19 @@ input {
 .no-chats {
   color: red;
 }
+
+.ended {
+  text-transform: uppercase;
+  font-size: 10px;
+  margin: 5px;
+  align-self: center;
+}
+
+.chat-key-container {
+  display: flex;
+  justify-content: center;
+}
+
+.chat-key {
+  align-self: center;
+}

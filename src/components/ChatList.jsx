@@ -64,14 +64,23 @@ export default class ChatList extends PureComponent {
       const orderedChat = chats[a].started_at - chats[b].started_at;
       return orderedChat;
     });
+    const ended = (key) => {
+      if (chats[key].status === 'ended') {
+        const span = <span className="ended">Ended</span>;
+        return span;
+      }
+
+      return null;
+    };
 
     if (sortedChats.length) {
       return sortedChats.map((key) => {
         const chatPath = `/chats/${key}`;
         const chat = (
           <Row className="chat" key={key}>
-            <Col md={6}>
-              <Link to={chatPath}>{key}</Link>
+            <Col md={6} className="chat-key-container">
+              <Link to={chatPath} className="chat-key">{key}</Link>
+              {ended(key)}
             </Col>
             <Col md={6}>
               {Moment(chats[key].started_at).format('dddd, M/D h:mm A')}
