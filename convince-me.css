@@ -67,3 +67,7 @@ input {
 .chat a {
   color: blue;
 }
+
+.no-chats {
+  color: red;
+}
