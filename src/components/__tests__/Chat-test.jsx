@@ -95,5 +95,52 @@ describe('Chat', () => {
         expect(databaseCall.calledWith(expectedArgs)).to.eq(true);
       });
     });
+
+    describe('#pushChatIdsToFirebase', () => {
+      const id = '123';
+      let snapshotStub;
+      let chatsRefStub;
+      let valStub;
+      let pushStub;
+
+      beforeEach(() => {
+        valStub = sinon.stub().returns(undefined);
+        pushStub = sinon.stub();
+        snapshotStub = {
+          val: valStub,
+        };
+        chatsRefStub = {
+          push: pushStub,
+        };
+      });
+
+      describe('no chats already', () => {
+        it('calls push on chatsRef', () => {
+          component.instance().pushChatIdsToFirebase(snapshotStub, chatsRefStub);
+          expect(pushStub.calledWith(id)).to.eq(true);
+        });
+      });
+
+      describe('chat doesnt exist', () => {
+        it('calls push on chatsRef', () => {
+          valStub.returns({
+            key: 'value',
+          });
+          component.instance().pushChatIdsToFirebase(snapshotStub, chatsRefStub);
+          expect(pushStub.calledWith(id)).to.eq(true);
+        });
+      });
+
+      describe('chat already exists', () => {
+        it('does not call push on chatsRef', () => {
+          valStub.returns({
+            key: 'value',
+            another_key: '123',
+          });
+          component.instance().pushChatIdsToFirebase(snapshotStub, chatsRefStub);
+          expect(pushStub.calledWith(id)).to.eq(false);
+        });
+      });
+    });
   });
 });

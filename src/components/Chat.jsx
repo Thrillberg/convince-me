@@ -31,7 +31,27 @@ export default class Chat extends PureComponent {
       });
     }));
 
+    chatsRef.once('value')
+      .then((snapshot) => {
+        this.pushChatIdsToFirebase(snapshot, chatsRef);
+      });
+  }
+
+  pushChatIdsToFirebase = (snapshot, chatsRef) => {
+    if (snapshot.val()) {
+      const chatIds = Object.keys(snapshot.val()).map((key) => {
+        const chatId = snapshot.val()[key];
+        return chatId;
+      });
+
+      if (chatIds.includes(this.props.match.params.id)) {
+        return null;
+      }
+      chatsRef.push(this.props.match.params.id);
+      return null;
+    }
     chatsRef.push(this.props.match.params.id);
+    return null;
   }
 
   handleTextInput = (event) => {

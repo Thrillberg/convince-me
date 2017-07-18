@@ -60,9 +60,13 @@ export default class ChatList extends PureComponent {
 
   displayChats() {
     const chats = this.state.chats;
+    const sortedChats = Object.keys(chats).sort((a, b) => {
+      const orderedChat = chats[a].started_at - chats[b].started_at;
+      return orderedChat;
+    });
 
-    if (chats) {
-      return Object.keys(chats).map((key) => {
+    if (sortedChats.length) {
+      return sortedChats.map((key) => {
         const chatPath = `/chats/${key}`;
         const chat = (
           <Row className="chat" key={key}>
@@ -78,7 +82,11 @@ export default class ChatList extends PureComponent {
       });
     }
 
-    return null;
+    return (
+      <h4>
+        Loading...
+      </h4>
+    );
   }
 
   render() {

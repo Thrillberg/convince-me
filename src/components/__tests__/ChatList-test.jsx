@@ -65,6 +65,9 @@ describe('ChatList', () => {
   });
 
   describe('layout', () => {
-
+    it('has a header', () => {
+      expect(component.find('h3').length).to.eq(1);
+      expect(component.find('.column-header').length).to.eq(2);
+    });
   });
 });
