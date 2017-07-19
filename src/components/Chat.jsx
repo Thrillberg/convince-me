@@ -56,13 +56,13 @@ export default class Chat extends PureComponent {
   getPartnerName = () => {
     const users = this.state.users;
     let partnerName;
-    Object.keys(users).map((key) => {
+    Object.keys(users).map((key) => { // eslint-disable-line
       if (users[key] !== Firebase.auth().currentUser.uid) {
         partnerName = users[key];
         return partnerName;
       }
-      return null;
     });
+    return partnerName;
   }
 
   handleTextInput = (event) => {
