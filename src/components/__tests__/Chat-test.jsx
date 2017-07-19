@@ -44,6 +44,7 @@ describe('Chat', () => {
         chatInput: '',
         messages: {},
         status: '',
+        users: {},
       };
       expect(component.state()).to.deep.eq(expectedState);
     });
