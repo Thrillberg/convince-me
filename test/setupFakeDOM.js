@@ -10,6 +10,8 @@ function copyProps(src, target) {
 	Object.defineProperties(target, props);
 }
 
+jsdom.reconfigure({ url: "http://www.some-url.com/" });
+
 global.window = window;
 global.document = window.document;
 global.navigator = {

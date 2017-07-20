@@ -34,11 +34,12 @@ export default class Chat extends PureComponent {
         this.pushChatIdsToFirebase(snapshot, chatsRef);
       });
 
-    statusRef.on('value', ((snapshot) => {
-      this.setState({
-        status: snapshot.val(),
+    statusRef.once('value')
+      .then((snapshot) => {
+        this.setState({
+          status: snapshot.val(),
+        });
       });
-    }));
 
     messagesRef.on('value', ((snapshot) => {
       this.setState({
@@ -46,23 +47,27 @@ export default class Chat extends PureComponent {
       });
     }));
 
-    usersRef.on('value', ((snapshot) => {
-      this.setState({
-        users: snapshot.val(),
+    usersRef.once('value')
+      .then((snapshot) => {
+        this.setState({
+          users: snapshot.val(),
+        });
       });
-    }));
   }
 
   getPartnerName = () => {
     const users = this.state.users;
     let partnerName;
-    Object.keys(users).map((key) => { // eslint-disable-line
-      if (users[key] !== Firebase.auth().currentUser.uid) {
-        partnerName = users[key];
-        return partnerName;
-      }
-    });
-    return partnerName;
+    if (users) {
+      Object.keys(users).map((key) => { // eslint-disable-line
+        if (users[key] !== Firebase.auth().currentUser.uid) {
+          partnerName = users[key];
+          return partnerName;
+        }
+      });
+      return partnerName;
+    }
+    return null;
   }
 
   handleTextInput = (event) => {

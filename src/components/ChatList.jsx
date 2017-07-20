@@ -78,11 +78,16 @@ export default class ChatList extends PureComponent {
         const chatPath = `/chats/${key}`;
         const chat = (
           <Row className="chat" key={key}>
-            <Col md={6} className="chat-key-container">
-              <Link to={chatPath} className="chat-key">{key}</Link>
+            <Col md={4} className="chat-key-container">
+              <Link to={chatPath} className="chat-key">
+                {key}
+              </Link>
               {ended(key)}
             </Col>
-            <Col md={6}>
+            <Col md={4}>
+              {chats[key].status}
+            </Col>
+            <Col md={4}>
               {Moment(chats[key].started_at).format('dddd, M/D h:mm A')}
             </Col>
           </Row>
@@ -105,10 +110,13 @@ export default class ChatList extends PureComponent {
           Your chats
         </h3>
         <Row>
-          <Col className="column-header" md={6}>
+          <Col className="column-header" md={4}>
             Chat Id
           </Col>
-          <Col className="column-header" md={6}>
+          <Col className="column-header" md={4}>
+            Status
+          </Col>
+          <Col className="column-header" md={4}>
             Date started
           </Col>
         </Row>
