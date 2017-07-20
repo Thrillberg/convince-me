@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import ChatList from '../ChatList';
 
 describe('ChatList', () => {
@@ -67,7 +68,33 @@ describe('ChatList', () => {
   describe('layout', () => {
     it('has a header', () => {
       expect(component.find('h3').length).to.eq(1);
-      expect(component.find('.column-header').length).to.eq(2);
+      expect(component.find('.column-header').length).to.eq(3);
     });
+
+    describe('#displayChats', () => {
+      it('orders chat by started_at', () => {
+        component.setState({
+          chats: {
+            first: {
+              key: 'first-key',
+              started_at: 123,
+              status: 'ended',
+            },
+            second: {
+              key: 'second-key',
+              started_at: 1245,
+            },
+          },
+        });
+
+        expect(component.find(Link).at(0).prop('to')).to.eq('/chats/first');
+        expect(component.find('span').text()).to.eq('Ended');
+        expect(component.find('span').length).to.eq(1);
+        expect(component.find(Link).at(1).prop('to')).to.eq('/chats/second');
+      });
+    });
+  });
+
+  describe('interaction', () => {
   });
 });
