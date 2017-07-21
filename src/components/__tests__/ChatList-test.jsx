@@ -37,6 +37,7 @@ describe('ChatList', () => {
   describe('initialization', () => {
     it('initializes with the correct state', () => {
       const expectedState = {
+        chatsLoaded: false,
         chats: {},
       };
 
@@ -56,7 +57,10 @@ describe('ChatList', () => {
           val: sinon.stub().returns(expectedState.chats),
         };
         databaseCall.resolves(snapshotStub);
-        expect(component.state()).to.deep.eq({ chats: {} });
+        expect(component.state()).to.deep.eq({
+          chatsLoaded: false,
+          chats: {},
+        });
 
         component.instance().setChatsToState();
 
@@ -74,6 +78,7 @@ describe('ChatList', () => {
     describe('#displayChats', () => {
       it('orders chat by started_at', () => {
         component.setState({
+          chatsLoaded: true,
           chats: {
             first: {
               key: 'first-key',

@@ -24,6 +24,7 @@ export default class ChatList extends PureComponent {
     super();
 
     this.state = {
+      chatsLoaded: false,
       chats: {},
     };
   }
@@ -37,6 +38,10 @@ export default class ChatList extends PureComponent {
 
     Firebase.database().ref(`/users/${uid}/chats`).once('value')
       .then((snapshot) => {
+        this.setState({
+          chatsLoaded: true,
+        });
+
         if (snapshot.val()) {
           const promises = Object.keys(snapshot.val()).map((key) => {
             const getChatsCall = ChatList.getChats(snapshot.val(), key);
@@ -59,41 +64,49 @@ export default class ChatList extends PureComponent {
   }
 
   displayChats() {
-    const chats = this.state.chats;
-    const sortedChats = Object.keys(chats).sort((a, b) => {
-      const orderedChat = chats[a].started_at - chats[b].started_at;
-      return orderedChat;
-    });
-    const ended = (key) => {
-      if (chats[key].status === 'ended') {
-        const span = <span className="ended">Ended</span>;
-        return span;
+    if (this.state.chatsLoaded) {
+      const chats = this.state.chats;
+      const sortedChats = Object.keys(chats).sort((a, b) => {
+        const orderedChat = chats[a].started_at - chats[b].started_at;
+        return orderedChat;
+      });
+      const ended = (key) => {
+        if (chats[key].status === 'ended') {
+          const span = <span className="ended">Ended</span>;
+          return span;
+        }
+
+        return null;
+      };
+
+      if (sortedChats.length) {
+        return sortedChats.map((key) => {
+          const chatPath = `/chats/${key}`;
+          const chat = (
+            <Row className="chat" key={key}>
+              <Col md={4} className="chat-key-container">
+                <Link to={chatPath} className="chat-key">
+                  {key}
+                </Link>
+                {ended(key)}
+              </Col>
+              <Col md={4}>
+                {chats[key].status}
+              </Col>
+              <Col md={4}>
+                {Moment(chats[key].started_at).format('dddd, M/D h:mm A')}
+              </Col>
+            </Row>
+          );
+          return chat;
+        });
       }
 
-      return null;
-    };
-
-    if (sortedChats.length) {
-      return sortedChats.map((key) => {
-        const chatPath = `/chats/${key}`;
-        const chat = (
-          <Row className="chat" key={key}>
-            <Col md={4} className="chat-key-container">
-              <Link to={chatPath} className="chat-key">
-                {key}
-              </Link>
-              {ended(key)}
-            </Col>
-            <Col md={4}>
-              {chats[key].status}
-            </Col>
-            <Col md={4}>
-              {Moment(chats[key].started_at).format('dddd, M/D h:mm A')}
-            </Col>
-          </Row>
-        );
-        return chat;
-      });
+      return (
+        <h4>
+          You have no chats yet!
+        </h4>
+      );
     }
 
     return (
