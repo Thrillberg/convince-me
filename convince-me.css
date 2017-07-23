@@ -87,3 +87,21 @@ input {
 .chat-key {
   align-self: center;
 }
+
+.Modal {
+  top: 40vh;
+  left: 30vw;
+  right: 30vw;
+  bottom: auto;
+  position: absolute;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  padding: 20px;
+  background: #fff;
+}
+
+.Modal > .centered {
+  text-align: center;
+  margin-bottom: 30px;
+}

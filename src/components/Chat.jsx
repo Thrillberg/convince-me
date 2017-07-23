@@ -24,35 +24,44 @@ export default class Chat extends PureComponent {
     const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
     const statusRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
 
-    usersRef.once('value')
-      .then((snapshot) => {
-        this.pushUserIdToFirebase(snapshot, usersRef);
+    statusRef.on('value', (snapshot) => {
+      this.setState({
+        status: snapshot.val(),
       });
+    });
+
+    messagesRef.on('value', (snapshot) => {
+      this.setState({
+        messages: snapshot.val(),
+      });
+    });
+
+    usersRef.on('value', (snapshot) => {
+      if (snapshot.val().length === 2) {
+        Firebase.database().ref(`chats/${this.props.match.params.id}/alerted_of_partner`).set(true);
+      }
+
+      this.setState({
+        users: snapshot.val(),
+      });
+    });
 
     chatsRef.once('value')
       .then((snapshot) => {
         this.pushChatIdsToFirebase(snapshot, chatsRef);
       });
+  }
 
-    statusRef.once('value')
-      .then((snapshot) => {
-        this.setState({
-          status: snapshot.val(),
-        });
-      });
-
-    messagesRef.on('value', ((snapshot) => {
-      this.setState({
-        messages: snapshot.val(),
-      });
-    }));
-
-    usersRef.once('value')
-      .then((snapshot) => {
-        this.setState({
-          users: snapshot.val(),
-        });
-      });
+  componentWillUnmount() {
+    const uid = Firebase.auth().currentUser.uid;
+    const usersRef = Firebase.database().ref(`chats/${this.props.match.params.id}/users`);
+    const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
+    const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
+    const statusRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
+    usersRef.off();
+    messagesRef.off();
+    chatsRef.off();
+    statusRef.off();
   }
 
   getPartnerName = () => {
@@ -86,23 +95,6 @@ export default class Chat extends PureComponent {
     this.setState({ chatInput: '' });
 
     event.preventDefault();
-  }
-
-  pushUserIdToFirebase = (snapshot, usersRef) => {
-    if (snapshot.val()) {
-      const userIds = Object.keys(snapshot.val()).map((key) => {
-        const userId = snapshot.val()[key];
-        return userId;
-      });
-
-      if (userIds.includes(Firebase.auth().currentUser.uid)) {
-        return null;
-      }
-      usersRef.push(Firebase.auth().currentUser.uid);
-      return null;
-    }
-    usersRef.push(Firebase.auth().currentUser.uid);
-    return null;
   }
 
   pushChatIdsToFirebase = (snapshot, chatsRef) => {
