@@ -4,11 +4,13 @@ import React, { PureComponent } from 'react';
 import Firebase from 'firebase';
 import ReactModal from 'react-modal';
 import ChatList from './ChatList';
+import DogBreeds from '../helpers/DogBreeds';
+import FirebaseRefs from '../helpers/FirebaseRefs';
 
 export default class Matchmaker extends PureComponent {
   static getChats(chatIds, key) {
     return new Promise((resolve) => {
-      const newRef = Firebase.database().ref('/chats/').orderByKey().equalTo(chatIds[key]);
+      const newRef = FirebaseRefs.chatsRef().orderByKey().equalTo(chatIds[key]);
       newRef.once('value')
         .then((snapshot) => {
           resolve({
@@ -33,114 +35,133 @@ export default class Matchmaker extends PureComponent {
   }
 
   componentDidMount() {
-    this.setChatsToState();
+    this.userChatsCall(this.setChatsToState);
   }
 
-  setChatsToState() {
+  userChatsCall = (method) => {
     const uid = Firebase.auth().currentUser.uid;
-
-    Firebase.database().ref(`/users/${uid}/chats`).once('value')
-      .then((snapshot) => {
-        this.setState({
-          chatsLoaded: true,
-        });
-
-        if (snapshot.val()) {
-          const promises = Object.keys(snapshot.val()).map((key) => {
-            const getChatsCall = Matchmaker.getChats(snapshot.val(), key);
-            return getChatsCall;
-          });
-
-          Promise.all(promises)
-            .then((results) => {
-              let chats = {};
-              results.forEach((chat) => {
-                chats = Object.assign({}, chats, chat);
-                this.listenForChatUpdates(Object.keys(chat)[0]);
-              });
-              this.setState({ chats });
-            });
-        }
-      })
-      .catch((error) => {
-        console.log(error); // eslint-disable-line no-console
-      });
-  }
-
-  getWaitingChat = (snapshot) => {
-    const validChats = [];
-
-    if (snapshot.val()) {
-      Object.keys(snapshot.val()).map((key) => { // eslint-disable-line array-callback-return
-        if (snapshot.val()[key].status === 'created') {
-          validChats.push({ [key]: snapshot.val()[key] });
-        }
-      });
-
-      if (validChats.length > 0) {
-        this.redirectToChat(Object.keys(validChats[0])[0]);
-      } else {
-        this.redirectToChat();
-      }
-    } else {
-      this.redirectToChat();
-    }
-  }
-
-  setChatToStarted = (snapshot, chat) => {
-    const partnerId = snapshot.val().users[0];
-    const userId = Firebase.auth().currentUser.uid;
-    if (snapshot.val().users.length === 1
-      && partnerId !== userId) {
-      const usersRef = Firebase.database().ref(`chats/${chat}/users`);
-      usersRef.set([userId, partnerId]);
-
-      const statusRef = Firebase.database().ref(`chats/${chat}/status`);
-
-      statusRef.set('started');
-      this.props.history.push(`/chats/${chat}`);
-      return null;
-    }
-
-    this.props.history.push(`/chats/${chat}`);
-    return null;
-  }
-
-  listenForChatUpdates = (chatId) => {
-    Firebase.database().ref(`/chats/${chatId}`).on('value', (snapshot) => {
-      const alertedOfPartner = snapshot.val().alerted_of_partner;
-      const chats = this.state.chats;
-      chats[chatId] = snapshot.val();
-
-      this.setState({ chats });
-
-      if (!alertedOfPartner && snapshot.val().users.length === 2) {
-        Firebase.database().ref(`/chats/${chatId}/alerted_of_partner`).set(true);
-        this.setState({
-          modalOpen: true,
-          modalLink: chatId,
-        });
-      }
+    FirebaseRefs.userChatsRef(uid).on('value', (chatsSnapshot) => {
+      method(chatsSnapshot.val())
     });
   }
 
-  prepareGetWaitingChat = () => {
-    const chatsRef = Firebase.database().ref('chats/');
-
-    chatsRef.once('value')
-      .then((snapshot) => {
-        this.getWaitingChat(snapshot);
+  chatsCall = (method) => {
+    FirebaseRefs.chatsRef().once('value')
+      .then((chatsSnapshot) => {
+        method(chatsSnapshot.val());
       });
   }
 
-  prepareSetChatToStarted = (chat) => {
-    const chatRef = Firebase.database().ref(`chats/${chat}`);
-    chatRef.once('value')
-      .then((snapshot) => {
-        if (snapshot.val().users) {
-          this.setChatToStarted(snapshot, chat);
-        }
+  chatCall = (method, id) => {
+    FirebaseRefs.chatsRef().child(id).once('value')
+      .then((chatSnapshot) => {
+        method(chatSnapshot.val(), id)
       });
+  }
+
+  setChatsToState = (chats) => {
+    if (chats) {
+      const promises = this.getChatsCalls(chats);
+
+      Promise.all(promises)
+        .then((results) => {
+          this.assembleChats(results);
+        });
+    }
+
+    this.setState({
+      chatsLoaded: true,
+    });
+  }
+
+  getChatsCalls = (chats) => {
+    const chatIds = Object.keys(chats);
+    return chatIds.map((id) => {
+      const getChatsCall = Matchmaker.getChats(chats, id);
+      return getChatsCall;
+    });
+  }
+
+  assembleChats = (results) => {
+    let chats = {};
+    results.forEach((chat) => {
+      chats = Object.assign({}, chats, chat);
+      const chatId = Object.keys(chat)[0];
+      this.chatCall(this.listenForChatUpdates, chatId);
+    });
+
+    this.setState({ chats });
+  }
+
+  getWaitingChat = (chats) => {
+    const validChats = [];
+
+    if (chats) {
+      const chatIds = Object.keys(chats);
+      chatIds.map((id) => {
+        if (chats[id].status === 'created') {
+          validChats.push({ [id]: chats[id] });
+        }
+        return null;
+      });
+
+      if (validChats.length > 0) {
+        const firstValidChatId = Object.keys(validChats[0])[0];
+        this.redirectToChat(firstValidChatId);
+        return null;
+      }
+    }
+    this.redirectToChat();
+  }
+
+  generateDisplayName() {
+    return DogBreeds.getBreed();
+  }
+
+  setChatToStarted = (chat, chatId) => {
+    if (chat.users) {
+      const userIds = Object.keys(chat.users);
+      const partnerId = userIds[0];
+      const userId = Firebase.auth().currentUser.uid;
+      if (userIds.length === 1 && partnerId !== userId) {
+        const userRef = Firebase.database().ref(`chats/${chatId}/users/${partnerId}`);
+        const displayName = this.generateDisplayName();
+        userRef.set(displayName);
+
+        const statusRef = Firebase.database().ref(`chats/${chatId}/status`);
+
+        statusRef.set('started');
+        this.props.history.push(`/chats/${chatId}`);
+        return null;
+      }
+
+      this.props.history.push(`/chats/${chatId}`);
+      return null;
+    }
+  }
+
+  listenForChatUpdates = (chat, chatId) => {
+    const alertedOfPartner = chat.alerted_of_partner;
+    const chats = this.state.chats;
+    chats[chatId] = chat;
+
+    this.setState({ chats });
+
+    if (!alertedOfPartner && chat.users.length === 2) {
+      Firebase.database().ref(`/chats/${chatId}/alerted_of_partner`).set(true);
+      this.setState({
+        modalOpen: true,
+        modalLink: chatId,
+      });
+    }
+  }
+
+  prepareGetWaitingChat = () => {
+    this.chatsCall(this.getWaitingChat);
+  }
+
+  prepareSetChatToStarted = (chatId) => {
+    this.chatCall(this.setChatToStarted, chatId);
   }
 
   redirectToChat = (waitingChatId) => {
@@ -150,17 +171,21 @@ export default class Matchmaker extends PureComponent {
       return null;
     }
 
-    const chat = this.saveChat();
-    this.props.history.push(`/chats/${chat.key}`);
+    this.redirectToNewChat();
     return null;
+  }
+
+  redirectToNewChat = () => {
+    const chat = this.saveChat();
+    const displayName = this.generateDisplayName();
+    Firebase.database().ref(`chats/${chat.key}/users/${Firebase.auth().currentUser.uid}`).set(displayName);
+    this.props.history.push(`/chats/${chat.key}`);
   }
 
   saveChat = () => {
     const chatsRef = Firebase.database().ref('chats/');
-    const currentUid = Firebase.auth().currentUser.uid;
 
     return chatsRef.push({
-      users: [currentUid],
       started_at: Firebase.database.ServerValue.TIMESTAMP,
       status: 'created',
     });

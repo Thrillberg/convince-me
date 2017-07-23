@@ -4,6 +4,8 @@ import { Row, Col, Button } from 'react-bootstrap';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Messages from './Messages';
+import FirebaseRefs from '../helpers/FirebaseRefs';
+import DogBreeds from '../helpers/DogBreeds';
 
 export default class Chat extends PureComponent {
   constructor() {
@@ -13,70 +15,73 @@ export default class Chat extends PureComponent {
       chatInput: '',
       messages: {},
       status: '',
-      users: {},
+      users: [],
+      partnerName: '',
     };
   }
 
   componentDidMount() {
     const uid = Firebase.auth().currentUser.uid;
-    const usersRef = Firebase.database().ref(`chats/${this.props.match.params.id}/users`);
-    const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
-    const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
-    const statusRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
+    const chatId = this.props.match.params.id;
 
-    statusRef.on('value', (snapshot) => {
-      this.setState({
-        status: snapshot.val(),
-      });
-    });
+    this.setChatToState(chatId);
+    this.populateFirebase(uid);
+  }
 
-    messagesRef.on('value', (snapshot) => {
-      this.setState({
-        messages: snapshot.val(),
-      });
-    });
-
-    usersRef.on('value', (snapshot) => {
-      if (snapshot.val().length === 2) {
-        Firebase.database().ref(`chats/${this.props.match.params.id}/alerted_of_partner`).set(true);
+  setChatToState(chatId) {
+    FirebaseRefs.chatRef(chatId).on('value', (snapshot) => {
+      const chat = snapshot.val();
+      if (chat.users.length === 2) {
+        FirebaseRefs.chatAlertedOfPartnerRef.set(true);
       }
-
       this.setState({
-        users: snapshot.val(),
+        status: chat.status,
+        messages: chat.messages,
+        users: chat.users,
+      }, () => this.getPartnerName(chatId));
+
+      FirebaseRefs.chatRef(chatId).on('child_changed', (data) => {
+        console.log(data.key)
+        this.setState({
+          [data.key]: data.val(),
+        });
       });
     });
-
-    chatsRef.once('value')
-      .then((snapshot) => {
-        this.pushChatIdsToFirebase(snapshot, chatsRef);
-      });
   }
 
-  componentWillUnmount() {
-    const uid = Firebase.auth().currentUser.uid;
-    const usersRef = Firebase.database().ref(`chats/${this.props.match.params.id}/users`);
-    const messagesRef = Firebase.database().ref(`chats/${this.props.match.params.id}/messages`);
-    const chatsRef = Firebase.database().ref(`users/${uid}/chats`);
-    const statusRef = Firebase.database().ref(`chats/${this.props.match.params.id}/status`);
-    usersRef.off();
-    messagesRef.off();
-    chatsRef.off();
-    statusRef.off();
+  populateFirebase(uid) {
+    const userRef = FirebaseRefs.userRef(uid);
+    userRef.on('value', ((snapshot) => {
+      this.pushChatIdsToFirebase(snapshot, userRef);
+      this.pushDisplayNameToFirebase(snapshot);
+    }));
   }
 
-  getPartnerName = () => {
-    const users = this.state.users;
-    let partnerName;
-    if (users) {
-      Object.keys(users).map((key) => { // eslint-disable-line
-        if (users[key] !== Firebase.auth().currentUser.uid) {
-          partnerName = users[key];
-          return partnerName;
+  getPartnerName = (chatId) => {
+    const userIds = Object.keys(this.state.users);
+    if (userIds) {
+      userIds.map((uid) => { // eslint-disable-line
+        if (uid !== Firebase.auth().currentUser.uid) {
+          this.getPseudonym(uid, chatId, this.setPartnerNameToState);
         }
       });
-      return partnerName;
+      return null;
     }
     return null;
+  }
+
+  setPartnerNameToState = (partnerName) => {
+    this.setState({partnerName});
+  }
+
+  getPseudonym = (uid, chatId, callback) => {
+    const chatUserIds = Object.keys(FirebaseRefs.chatUsersRef(chatId));
+    if (chatUserIds.include(uid)) {
+      callback(FirebaseRefs.chatUsersRef(chatId)[uid]);
+    }
+
+    const pseudonym = DogBreeds.getDisplayName();
+    callback(pseudonym);
   }
 
   handleTextInput = (event) => {
@@ -97,20 +102,30 @@ export default class Chat extends PureComponent {
     event.preventDefault();
   }
 
-  pushChatIdsToFirebase = (snapshot, chatsRef) => {
+  pushChatIdsToFirebase = (snapshot, userRef) => {
     if (snapshot.val()) {
-      const chatIds = Object.keys(snapshot.val()).map((key) => {
-        const chatId = snapshot.val()[key];
+      const chatIds = Object.keys(snapshot.val().chats).map((key) => {
+        const chatId = snapshot.val().chats[key];
         return chatId;
       });
 
       if (chatIds.includes(this.props.match.params.id)) {
         return null;
       }
-      chatsRef.push(this.props.match.params.id);
+      userRef.child('chats').push(this.props.match.params.id);
       return null;
     }
-    chatsRef.push(this.props.match.params.id);
+    userRef.child('chats').push(this.props.match.params.id);
+    return null;
+  }
+
+  pushDisplayNameToFirebase = (snapshot) => {
+    if (snapshot.val() && snapshot.val().displayName) {
+      return null;
+    }
+
+    const displayName = Firebase.auth().currentUser.displayName;
+    Firebase.database().ref(`users/${Firebase.auth().currentUser.uid}/displayName`).set(displayName);
     return null;
   }
 
@@ -186,7 +201,7 @@ export default class Chat extends PureComponent {
   }
 
   renderPartnerName = () => {
-    const partnerName = this.getPartnerName();
+    const partnerName = this.state.partnerName;
     if (partnerName) {
       return (
         <div>
