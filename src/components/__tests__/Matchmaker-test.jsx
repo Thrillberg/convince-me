@@ -4,33 +4,91 @@ import ChatList from '../ChatList';
 
 describe('Matchmaker', () => {
   let component;
+  let fakeAuthenticated;
   let fakeDatabase;
-  let historyStub;
+  let history;
 
   beforeEach(() => {
+    fakeAuthenticated = sinon.stub(Firebase, 'auth').returns({
+      currentUser: {
+        uid: '123',
+      },
+    });
+
     fakeDatabase = sinon.stub(Firebase, 'database').returns({
       ref: sinon.stub().returns({
+        orderByKey: sinon.stub().returns({
+          equalTo: sinon.stub().returns({
+            once: sinon.stub().returns({
+              then: sinon.spy(),
+            }),
+          }),
+        }),
         once: sinon.stub(Firebase, 'once').returns({
           then: sinon.stub(),
         }),
         set: sinon.stub(Firebase, 'set'),
+        push: sinon.stub().returns({
+          key: 'some key',
+        }),
       }),
+      ServerValue: sinon.spy(),
     });
 
-    historyStub = {
-      push: sinon.stub(),
+    history = {
+      push: sinon.spy(),
     };
 
-    component = shallow(<Matchmaker history={historyStub} />);
+    component = shallow(<Matchmaker history={history} />);
   });
 
   afterEach(() => {
+    fakeAuthenticated.restore();
     fakeDatabase.restore();
   });
 
+  describe('initialization', () => {
+    it('initializes with the correct state', () => {
+      const expectedState = {
+        chatsLoaded: false,
+        chats: {},
+        modalOpen: false,
+        modalLink: '',
+      };
+
+      expect(component.state()).to.deep.eq(expectedState);
+    });
+
+    describe('#setChatsToState', () => {
+      it('sets chats from Firebase to state', () => {
+        const expectedState = {
+          chats: {
+            firstChat: 'a chat here',
+            secondChat: 'another chat here',
+          },
+        };
+        const databaseCall = fakeDatabase().ref().once;
+        const snapshotStub = {
+          val: sinon.stub().returns(expectedState.chats),
+        };
+        databaseCall.resolves(snapshotStub);
+        expect(component.state()).to.deep.eq({
+          chatsLoaded: false,
+          chats: {},
+          modalOpen: false,
+          modalLink: '',
+        });
+
+        component.instance().setChatsToState();
+
+        expect(databaseCall.calledWith('value')).to.eq(true);
+      });
+    });
+  });
+
   describe('layout', () => {
-    it('has a Chat Now button', () => {
-      expect(component.find(Button).length).to.eq(1);
+    it('has a Chat Now and Modal button', () => {
+      expect(component.find(Button).length).to.eq(2);
     });
 
     it('has a list of current chats', () => {
@@ -49,7 +107,7 @@ describe('Matchmaker', () => {
 
     describe('#getWaitingChat', () => {
       let snapshotStub;
-      let callbackStub;
+      let expectedArgs;
 
       describe('when there is a snapshot value', () => {
         describe('when there are valid chats', () => {
@@ -65,13 +123,11 @@ describe('Matchmaker', () => {
             snapshotStub = {
               val: sinon.stub().returns(validChat),
             };
-            callbackStub = sinon.spy();
           });
 
-          it('calls the callback with the valid chats', () => {
-            const chatCall = Object.keys(validChat)[0];
-            component.instance().getWaitingChat(snapshotStub, callbackStub);
-            expect(callbackStub.calledWith(chatCall)).to.eq(true);
+          it('redirects to chat', () => {
+            component.instance().getWaitingChat(snapshotStub);
+            expect(component.instance().props.history.push.called).to.eq(true);
           });
         });
 
@@ -88,12 +144,17 @@ describe('Matchmaker', () => {
             snapshotStub = {
               val: sinon.stub().returns(invalidChat),
             };
-            callbackStub = sinon.spy();
+            expectedArgs = [[{
+              users: [fakeAuthenticated().currentUser.uid],
+              started_at: Firebase.database.ServerValue.TIMESTAMP,
+              status: 'created',
+            }]];
           });
 
-          it('calls the callback without an argument', () => {
-            component.instance().getWaitingChat(snapshotStub, callbackStub);
-            expect(callbackStub.called).to.eq(true);
+          it('saves and redirects to chat', () => {
+            component.instance().getWaitingChat(snapshotStub);
+            expect(fakeDatabase().ref().push.args).to.deep.eq(expectedArgs);
+            expect(component.instance().props.history.push.called).to.eq(true);
           });
         });
       });
@@ -103,12 +164,11 @@ describe('Matchmaker', () => {
           snapshotStub = {
             val: sinon.stub().returns(null),
           };
-          callbackStub = sinon.spy();
         });
 
-        it('calls the callback without an argument', () => {
-          component.instance().getWaitingChat(snapshotStub, callbackStub);
-          expect(callbackStub.called).to.eq(true);
+        it('saves and redirects to chat', () => {
+          component.instance().getWaitingChat(snapshotStub);
+          expect(component.instance().props.history.push.called).to.eq(true);
         });
       });
     });
@@ -120,14 +180,16 @@ describe('Matchmaker', () => {
           const databaseCall = fakeDatabase().ref().once;
           component.instance().redirectToChat(chatId);
           expect(databaseCall.called).to.eq(true);
+          expect(component.instance().props.history.push.called).to.eq(true);
         });
       });
 
       describe('when there is no chat id', () => {
-        it('calls set on Firebase', () => {
-          const databaseCall = fakeDatabase().ref().set;
+        it('calls push on Firebase', () => {
+          const databaseCall = fakeDatabase().ref().push;
           component.instance().redirectToChat();
           expect(databaseCall.called).to.eq(true);
+          expect(component.instance().props.history.push.called).to.eq(true);
         });
       });
     });
